@@ -13,16 +13,16 @@ Open an issue if something is not clear -- we will decide on a solution and upda
 # series.txt
 
 `series.txt` contains one line per TV (or movie) series.
-Each line provides a (CamelCase) identifier, a full name, a link to its IMDB.com page, and a link to its TV.com page.
+Each line provides a (CamelCase) identifier, a full name, a link to its IMDB.com page, a link to its TV.com page, and a boolean set to 1 if the line corresponds to a movie.
 
 ```
 $ cat series.txt
-TheBigBangTheory,The Big Bang Theory,https://www.imdb.com/title/tt0898266/,http://www.tv.com/shows/the-big-bang-theory/
+TheBigBangTheory,The Big Bang Theory,https://www.imdb.com/title/tt0898266/,http://www.tv.com/shows/the-big-bang-theory/,0
 ```
 
-## One sub-directory per series
+## One sub-directory per series / movies
 
-For each series in `series.txt`, there is a corresponding sub-directory called after its CamelCase identifier into the scripts folder and into the data folder.
+For each entries in `series.txt`, there is a corresponding sub-directory called after its CamelCase identifier into the scripts folder and into the data folder.
 
 # Scripts
 
@@ -63,26 +63,27 @@ TheBigBangTheory/
 
 ### `characters.txt`
 
-This file provides the list of characters (gathered from TV.com or IMDB.com). It contains one line per character with the following information: underscore-separated identifier, character's full name, actor's full name, IMDB.com character page.
+This file provides the list of characters (gathered from TV.com or IMDB.com). It contains one line per character with the following information: underscore-separated identifier, actor's normalized name, character's full name, actor's full name, IMDB.com character page.
 
 ```
-leonard_hofstadter,Leonard Hofstadter,Johnny Galecki,https://www.imdb.com/title/tt0898266/characters/nm0301959
+leonard_hofstadter,johnny_galecki,Leonard Hofstadter,Johnny Galecki,https://www.imdb.com/title/tt0898266/characters/nm0301959
 ```
 
 The creation of this file should be automated as much as possible. Ideally, a script would take `series.txt` as input and generate all `characters.txt` file at once (or just one if an optional series identifier is provided)
+`-v fileName` creates a file with `characters.txt` to easily verify the characters normalization.
 
 ```bash
-python characters.py series.txt TheBigBangTheory
+python characters.py series.txt TheBigBangTheory -v normVerif.txt
 ```
 
 Note: Leo is in charge of creating this script.
 
 ### `episodes.txt`
 
-This file provides the list of episodes (gathered from TV.com or IMDB.com). It contains one line per episode with the following information: unique episode identifier, IMDB.com episode page, TV.com episode page.
+This file provides the list of episodes (gathered from TV.com or IMDB.com). It contains one line per episode with the following information: unique episode identifier, name of the episode, IMDB.com episode page, TV.com episode page.
 
 ```
-TheBigBangTheory.Season01.Episode01,https://www.imdb.com/title/tt0775431/,http://www.tv.com/shows/the-big-bang-theory/pilot-939386/
+TheBigBangTheory.Season01.Episode01,Pilot,https://www.imdb.com/title/tt0775431/,http://www.tv.com/shows/the-big-bang-theory/pilot-939386/
 ```
 
 The creation of this file should be automated as much as possible. Ideally, a script would take `series.txt` as input and generate all `episodes.txt` file at once (or just one if an optional series identifier is provided)
@@ -91,7 +92,7 @@ The creation of this file should be automated as much as possible. Ideally, a sc
 python episodes.py series.txt TheBigBangTheory
 ```
 
-For movies, we can use something like `HarryPotter.Movie01` as "episode" unique identifier.
+For movies, we can use something like `HarryPotter.Episode01` as "episode" unique identifier.
 
 Note: Leo can probably do this script.
 
@@ -99,21 +100,23 @@ Note: Leo can probably do this script.
 
 This file provides the list of characters credited in each episode. It contains one line per episode. Each episode is denoted by its normalized identifier (e.g. `TheBigBangTheory.Season01.Episode01`).
 
-The line starts with one field for the episode and then the list of credited characters (in alphabetical order, usign their underscore-separated identifier).
+The line starts with one field for the episode and then one boolean for each character of the series/movie, with 1 if the character appears in the episode, 0 otherwise.
 
 For instance, the line below tells that 3 characters appear in episode 1 of season 1 of The Big Bang Theory
 
 ```
-TheBigBangTheory.Season01.Episode01 leonard_hofstadter penny sheldon_cooper
+TheBigBangTheory.Season01.Episode01,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0...
 ```
 
-The creation of this file should be automated as much as possible. Ideally, a script would take `series.txt` and `characters.txt` as input and generate all `credits.txt` at once (or just one if an optional series identifier is provided)
+The ith binary column corresponds to the ith line in characters.txt
+
+The creation of this file should be automated as much as possible. Ideally, a script would take `series.txt` as input and generate all `credits.txt` at once (or just one if an optional series identifier is provided)
 
 ```bash
-python credits.py series.txt TheBigBangTheory/characters.txt
+python episodes.py series.txt TheBigBangTheory -c
 ```
 
-Note: Aman is in charge of creating this script
+Note: Leo is in charge of creating this script
 
 ### `transcripts.txt`
 
